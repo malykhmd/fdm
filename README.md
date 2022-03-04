@@ -20,9 +20,18 @@ for which a special class is established, is considered.
   sage: problem1=InitialProblem([x2,-x1], [x1,x2], [0,1], 1)
 ```
 ## Description of the numerical solution
-
+Explicit Runge-Kutta method with step dt=T/N:
 ```
-  sage: P=erk(problem1, N=20,tableau=butchers_list[1])
+  sage: P=erk(problem1, N=20)
+```
+Implicite Runge-Kutta method with step dt=T/N:
+```
+  sage: Q=irk(problem1, N=20)
+```
+Specifying a Butcher tableau:
+```
+  sage: B=Butcher_tableau(4,[[[1/4,1/4-1/6*sqrt(3)],[1/4+1/6*sqrt(3),1/4]],[1/2,1/2]], 'glrk','Gauss--Legendre RK methods')
+  sage: R=irk(problem1, N=20,tableau=B)
 ```
 ## Iterpolation and plots
 ```
