@@ -37,3 +37,5 @@ sage: L=[erk(problem1, N=20*2^n,tableau=butchers_list[1]) for n in range(10)]
 sage: richardson_plot(L,x1,9)
 sage: richardson(L[1],L[2],x1,9)
 ```
+# References
+* A.Baddour, M.D.Malykh, Richardson–Kalitkin method in abstract descrip-tion, Discrete and Continuous Models and Applied Computational Science29 (3) (2021) 271–284.  DOI: [10.22363/2658-4670-2021-29-3-271-284](https://doi.org/10.22363/2658-4670-2021-29-3-271-284).
