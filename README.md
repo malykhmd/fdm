@@ -3,7 +3,7 @@
 The Sage computer algebra system has very mediocre tools for the numerical integration of ordinary 
 differential equations, but making computer experiments in it related to symbolic-numerical
 calculations is very comfortable. The report presents a new package for numerical integration
-of differential equations. When creating it, we adhered to the following general principles: 
+of differential equations. We adhered to the following general principles: 
 * numerical solutions are considered as elements of a new class, 
 * the class definition provides tools for interpolating and visualizing the solution, 
 * Richardson’s method for obtaining posterior estimates of errors is separate from the implementation of numerical methods, for which
@@ -38,4 +38,4 @@ for which a special class is established, is considered.
   sage: richardson(L[1],L[2],x1,9)
 ```
 # References
-* A.Baddour, M.D.Malykh, Richardson–Kalitkin method in abstract description, Discrete and Continuous Models and Applied Computational Science29 (3) (2021) 271–284.  DOI: [10.22363/2658-4670-2021-29-3-271-284](https://doi.org/10.22363/2658-4670-2021-29-3-271-284).
+* A. Baddour, M.D. Malykh, Richardson–Kalitkin method in abstract description, Discrete and Continuous Models and Applied Computational Science29 (3) (2021) 271–284.  DOI: [10.22363/2658-4670-2021-29-3-271-284](https://doi.org/10.22363/2658-4670-2021-29-3-271-284).
