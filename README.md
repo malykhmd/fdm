@@ -4,7 +4,7 @@ The Sage computer algebra system has very mediocre tools for the numerical integ
 differential equations, but making computer experiments in it related to symbolic-numerical
 calculations is very comfortable. The report presents a new package for numerical integration
 of differential equations. When creating it, we adhered to the following general principles: 
-* Numerical solutions are considered as elements of a new class, 
+* numerical solutions are considered as elements of a new class, 
 * the class definition provides tools for interpolating and visualizing the solution, 
 * Richardson’s method for obtaining posterior estimates of errors is separate from the implementation of numerical methods, for which
 two attributes – order of approximation and step or its analogue for quasi-equal grids are added in the class of numerical solutions. 
