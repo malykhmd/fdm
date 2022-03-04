@@ -10,9 +10,8 @@ of differential equations. When creating it, we adhered to the following general
 two attributes – order of approximation and step or its analogue for quasi-equal grids are added in the class of numerical solutions. 
 
 Our package focuses on visualizing the results of the calculation, including the construction of various kinds of auxiliary diagrams, including Richardson
-diagrams. The implementation of the explicit Runge-Kutta method with arbitrary Butcher tables,
-for which a special class is established, is considered. The principles of working with our package
-are illustrated by an example that is solved by the Runge-Kutta method of the 6th order.
+diagrams. The implementation of Runge-Kutta method with arbitrary Butcher tables,
+for which a special class is established, is considered.
 
 # Getting started
 ## Description of the initial problem
