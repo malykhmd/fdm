@@ -11,7 +11,7 @@ two attributes – order of approximation and step or its analogue for quasi-equ
 
 Our package focuses on visualizing the results of the calculation, including the construction of various kinds of auxiliary diagrams, including Richardson
 diagrams. The implementation of Runge-Kutta method with arbitrary Butcher tableau,
-for which a special class is established, is considered.
+for which a special class is introduced, is considered.
 
 # Getting started
 ## Description of the initial problem
