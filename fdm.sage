@@ -65,7 +65,7 @@ class Numsol:
         while P[n][0] < t0:
             n=n+1
         L=[]
-        for i in range(n-9,n+10):
+        for i in range(n-2,n+3):
             if i>=0 and i< self.size():
                 L.append(P[i])
         S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in L]
