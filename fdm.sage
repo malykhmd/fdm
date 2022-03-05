@@ -1,45 +1,52 @@
 ################
-# FDM ver. 1.1 #
+# FDM ver. 1.2 #
 ################
 
 #RR=RealField(200)
 
-class InitialProblem:
-    def __init__(self, f, x, x0, T):
+class Initial_problem:
+    def __init__(self, x, f, x0, T):
         self.f = f
         self.x = x
         self.x0 = x0
         self.T = T
     def list(self):
-        ans = [self.f, self.x, self.x0, self.T]
         if type(self.f)!=type([]):
             f=[self.f]
             x=[self.x]
             x0=[self.x0]
-        return ans
-    def subs(self, u, abc):
-        if len(x1)==len(self.x):
-            S=[i==j for [i,j] in zip(self.x,abc)]
         else:
-            S=[t==abc[0]]+[i==j for [i,j] in zip(self.x,abc[1:])]
+            f=self.f
+            x=self.x
+            x0=self.x0
+        T=self.T
+        return [f, x, x0, T]
+    def subs(self, u, abc):
+        [f,x,x0,T]=self.list()
+        if len(abc)==len(x):
+            S=[i==j for [i,j] in zip(x,abc)]
+        else:
+            S=[t==abc[0]]+[i==j for [i,j] in zip(x,abc[1:])]
         if type(u)==type([]): 
             ans=[uu.subs(S) for uu in u]
         else:
             ans=u.subs(S)
         return ans
     def D(self, u):
+        [f,x,x0,T]=self.list()
         if type(u)==type([]): 
-            ans=[sum([diff(uu,i)*j for [i,j] in zip(self.x,self.f)]) + diff(uu,t) for uu in u]
+            ans=[sum([diff(uu,i)*j for [i,j] in zip(x,f)]) + diff(uu,t) for uu in u]
         else:
-            ans=sum([diff(u,i)*j for [i,j] in zip(self.x,self.f)]) + diff(u,t)
+            ans=sum([diff(u,i)*j for [i,j] in zip(x,f)]) + diff(u,t)
         return ans
     def latex(self):
+        [f,x,x0,T]=self.list()
         print("\\left \\{ \\begin{aligned} &")
         print("".join([r'\frac{d}{dt}'+latex(xx)+'='+latex(ff) + r', \quad ' for [xx,ff] \
-                       in zip(self.x[:len(x)-1],self.f[:len(x)-1])])\
-                      + r' \frac{d}{dt}'+latex(self.x[-1])+'='+latex(self.f[-1])+', \\\\ &')
-        print("".join([latex(xx)+'(0)='+latex(xx0)+r', \quad ' for [xx,xx0] in zip(self.x[:len(x)-1],self.x0[:len(x)-1])])\
-                       + latex(self.x[-1])+'(0)='+latex(self.x0[-1]))
+                       in zip(x[:len(x)-1],f[:len(x)-1])])\
+                      + r' \frac{d}{dt}'+latex(x[-1])+'='+latex(f[-1])+', \\\\ &')
+        print("".join([latex(xx)+'(0)='+latex(xx0)+r', \quad ' for [xx,xx0] in zip(x[:len(x)-1],x0[:len(x)-1])])\
+                       + latex(x[-1])+'(0)='+latex(x0[-1]))
         print("\\end{aligned} \\right. ")
 
 class Numsol:
@@ -58,14 +65,18 @@ class Numsol:
         while P[n][0] < t0:
             n=n+1
         L=[]
-        for i in range(n-2,n+3):
+        for i in range(n-9,n+10):
             if i>=0 and i< self.size():
                 L.append(P[i])
         S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in L]
         return spline([[t.subs(s),u.subs(s)] for s in S])
     def value(self,u,t0,order=0):
+        L=[i for i in self.list() if i[0]==t0]
         if order == 0: 
-            ans = self.values(u,t0)(t0)
+            if L!=[]:
+                ans=u.subs([i==j for [i,j] in zip(self.variables, L[0])])
+            else:    
+                ans = self.values(u,t0)(t0)
         elif order == 1 or order == 2:
             ans = self.values(u,t0).derivative(t0, order=order)
         return ans
@@ -125,13 +136,15 @@ def mnk(P):
     S=solve(eqs,vars)[0] 
     return [RR(a.subs(S)),RR(b.subs(S))]
 
-#######################
-# Runge--Kutta method #
-#######################
+###################
+# Butcher tableau #
+###################
 
 def latex_zero(a):
     if a==0:
         ans=latex('')
+    elif a in AA or a in QQbar:
+        ans=latex(a.radical_expression())
     else:
         ans=latex(a)
     return ans
@@ -144,14 +157,43 @@ class Butcher_tableau:
         self.notes = notes
     def order(self):
         return self.n
-    def a(self,field=RR):
-        return [[field(a_cc) for a_cc in a_c] for a_c in self.tableau[0]]
-    def b(self,field=RR):
-        return [field(b_c) for b_c in self.tableau[1]]
+    def a(self,field=RR, radical_expression=False):
+        if radical_expression==True:
+            ans=[[field(a_cc).radical_expression() for a_cc in a_c] for a_c in self.tableau[0]]
+        else: 
+            ans=[[field(a_cc) for a_cc in a_c] for a_c in self.tableau[0]]
+        return ans
+    def b(self,field=RR, radical_expression=False):
+        if radical_expression==True:
+            ans=[field(b_c).radical_expression() for b_c in self.tableau[1]]
+        else: 
+            ans=[field(b_c) for b_c in self.tableau[1]]
+        return ans
     def number_of_stages(self):
         return len(self.b())
-    def c(self,field=RR):
-        return [sum([field(a__) for a__ in a_]) for a_ in self.tableau[0]]
+    def c(self,field=RR, radical_expression=False):
+        if radical_expression==True:
+            ans=[sum([field(a__) for a__ in a_]).radical_expression() for a_ in self.tableau[0]]
+        else: 
+            ans=[sum([field(a__) for a__ in a_]) for a_ in self.tableau[0]]
+        return ans
+    def dic(self):
+        s=self.number_of_stages()
+        L=[self.tableau[0][i][j] for i in range(s) for j in range(s)]+self.tableau[1]
+        S={i:L[i] for i in range(len(L))}
+        return S
+    def is_order(self,n):
+        eqs=butcher_eqs(n,self.number_of_stages())
+        L=[QQbar(eq.subs(self.dic())).minpoly() for eq in eqs]
+        ans = prod([str(i)=='x' for i in L])==1
+        return ans
+    def is_symplectic(self):
+        a=self.tableau[0]
+        b=self.tableau[1]
+        s=self.number_of_stages()
+        L=[QQbar(b[i]*a[i][j]+b[j]*a[j][i]-b[i]*b[j]).minpoly() for i in range(s) for j in range(s)]
+        ans = prod([str(i)=='x' for i in L])==1
+        return ans
     def latex(self,field=SR):
         a=self.a(field=field)
         b=self.b(field=field)
@@ -170,9 +212,87 @@ class Butcher_tableau:
         [print('error in a matrice, row no. '+ latex(i)) for i in a if len(i)!=n]
         print('ok')
 
-load("butchers_list.sage")
-
-def erk(problem, N=10, tableau=butchers_list[0]):
+# From Yu Ying's phd these 
+def butcher_list(p,s,implicit=True,symplectic=False):
+    def lacroix(f, p):
+        L=[f]
+        D=lambda u: diff(u,x)*L[0]
+        for  i in range(p-1):
+            f=D(f)
+            L.append(f)
+        return L
+    var('x,t,dt')
+    b=var(['b'+str(n) for n in range(s)])
+    A=matrix(s,s,var(['a'+str(n)+str(m) for n in range(s) for m in range(s)]))
+    a=matrix(s,s,lambda i,j: (i>j or implicit)*A[i][j])
+    c=[sum([a[i][j] for j in range(s)]) for i in range(s)]
+    Kab=PolynomialRing(AA, list(a.variables())+list(b),order='lex')
+    f=var(['f'+str(j) for j in range(p+1)])
+    F=sum([f[j]*x^j/factorial(j) for j in range(p+1)])
+    k=matrix(s,p+1,var(['k'+str(i)+str(j) for i in range(s) for  j in range(p+1)]))
+    Slope=[sum([k[i][j]*dt^j/factorial(j) for j in range(p+1)]) for  i in range(s)]
+    eqs=[Slope[i]-F.subs(x=dt*sum([a[i][j]*Slope[j] for j in range(s) if j<i or implicit])) for i in range(s)]
+    sols=[]
+    for j in range(p+1):
+        sol=solve([eq.subs(dt=0)==0 for eq in eqs], [k[i][j] for i in range(s)])
+        eqs=[diff(eq,dt).subs(sol) for eq in eqs]
+        sols.append(sol)
+    dx = dt*sum([b[i]*Slope[i].subs(sols) for i in range(s)]) 
+    ser_dx=dx.series(dt, order=p+1).list()
+    eqs = [lacroix(F, p)[j].subs(x=0) - factorial(j+1)*ser_dx[j+1] for  j in range(0,p) ]
+    Kf=PolynomialRing(Kab, f)
+    ans=[]
+    for  j in range(0,p):
+        ans+=Kf(eqs[j]).coefficients()
+    if symplectic==True:
+        ans=ans+[b[i]*a[i][j]+b[j]*a[j][i]-b[i]*b[j] for i in range(s) for j in range(s)]
+# ans -- список уравнений, но из-за бага со словарем в variety его не получилось по другому скормить этому 
+# методу, не получается передать переменные в subs. 
+    V=(Kab*ans).variety(AA)
+    T=[[[[Kab(a[i][j]).subs(v) for j in range(s)] for i in range(s)], [Kab(b[i]).subs(v) for i in range(s)]] \
+       for v in V]
+    return [Butcher_tableau(p,t) for t in T]
+    
+def butcher_eqs(p,s,implicit=True,symplectic=False):
+    def lacroix(f, p):
+        L=[f]
+        D=lambda u: diff(u,x)*L[0]
+        for  i in range(p-1):
+            f=D(f)
+            L.append(f)
+        return L
+    var('x,t,dt')
+    b=var(['b'+str(n) for n in range(s)])
+    A=matrix(s,s,var(['a'+str(n)+str(m) for n in range(s) for m in range(s)]))
+    a=matrix(s,s,lambda i,j: (i>j or implicit)*A[i][j])
+    c=[sum([a[i][j] for j in range(s)]) for i in range(s)]
+    Kab=PolynomialRing(QQ, list(a.variables())+list(b),order='lex')
+    f=var(['f'+str(j) for j in range(p+1)])
+    F=sum([f[j]*x^j/factorial(j) for j in range(p+1)])
+    k=matrix(s,p+1,var(['k'+str(i)+str(j) for i in range(s) for  j in range(p+1)]))
+    Slope=[sum([k[i][j]*dt^j/factorial(j) for j in range(p+1)]) for  i in range(s)]
+    eqs=[Slope[i]-F.subs(x=dt*sum([a[i][j]*Slope[j] for j in range(s) if j<i or implicit])) for i in range(s)]
+    sols=[]
+    for j in range(p+1):
+        sol=solve([eq.subs(dt=0)==0 for eq in eqs], [k[i][j] for i in range(s)])
+        eqs=[diff(eq,dt).subs(sol) for eq in eqs]
+        sols.append(sol)
+    dx = dt*sum([b[i]*Slope[i].subs(sols) for i in range(s)]) 
+    ser_dx=dx.series(dt, order=p+1).list()
+    eqs = [lacroix(F, p)[j].subs(x=0) - factorial(j+1)*ser_dx[j+1] for  j in range(0,p) ]
+    Kf=PolynomialRing(Kab, f)
+    ans=[]
+    for  j in range(0,p):
+        ans+=Kf(eqs[j]).coefficients()
+    if symplectic==True:
+        ans=ans+[b[i]*a[i][j]+b[j]*a[j][i]-b[i]*b[j] for i in range(s) for j in range(s)]
+    return ans
+    
+#######################
+# Runge--Kutta method #
+#######################    
+    
+def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method')):
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
@@ -198,7 +318,8 @@ def curvature(f,x):
     k=sum([(a[i]*b[j]-a[j]*b[i])^2 for i in range(len(a)) for j in range(len(a)) if i<j])/sum([a_^2 for a_ in a])^(3/2)
     return k
 
-def erk_adoptive(problem, h=0.1, tableau=butchers_list[0]):
+
+def erk_adoptive(problem, h=0.1, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method')):
     [f,x,x0,T]=problem.list()
     if type(f)!=type([]):
         f=[f]
@@ -225,11 +346,11 @@ def erk_adoptive(problem, h=0.1, tableau=butchers_list[0]):
         ans.append([t0]+x0+[dt])
     return Numsol(ans,[t]+x,h,tableau.order())
 
-def irk(problem, N=10, eps=10^-10, M=10^2, tableau=butchers_list[2]):
+def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
-    dt=RR(T/N)
+    dt=T/N
     a=tableau.a(field=RR)
     b=tableau.b(field=RR)
     c=tableau.c(field=RR)
@@ -251,6 +372,35 @@ def irk(problem, N=10, eps=10^-10, M=10^2, tableau=butchers_list[2]):
             for [x0_,k_] in zip(x0,zip(*k))]
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,dt,tableau.order())
+    
+def irk_adoptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
+    [f,x,x0,T]=problem.list()
+    t0=0
+    ans=[[t0]+x0]
+    a=tableau.a(field=RR)
+    b=tableau.b(field=RR)
+    c=tableau.c(field=RR)
+    s=tableau.number_of_stages()
+    jac=jacobian(f,x)
+    while t0<T:
+        dt=RR(h/jac.subs([t==t0]+[i==j for [i,j] in zip(x,x0)]).norm())
+        k=[problem.subs(f,[t0]+x0) for i in range(s)]
+        delta = oo
+        i=0
+        while delta>eps:
+            kk = [problem.subs(f,[t0 +c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt for [x0_,k_] in zip(x0,zip(*k))]) for m in range(s)]
+            delta=(matrix(kk)-matrix(k)).norm()
+            if i>M:
+                print('error: the simple iteration method does not converge')
+                break
+            i=i+1
+            k=kk
+        t0=t0+dt
+        x0=[x0_ + sum([b_*k__ for [b_,k__]  in zip(b,k_)])*dt \
+            for [x0_,k_] in zip(x0,zip(*k))]
+        ans.append([t0]+x0)
+    return Numsol(ans,[t]+x,dt,tableau.order())
+
 
 ################
 # Adams method #
@@ -297,49 +447,3 @@ def adams_adoptive(problem, h=10^-1, r=2):
         t0=t0+dt
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,h,r)
-
-##################
-#Midpoint method #
-##################
-
-#Solving of the eq. x=x0+f(x)
-def simple_iteration_method(f,x,x0, eps=10^-20):
-    x1=x0
-    S=[i==j for [i,j] in zip(x,x0)]
-    x2=[i+j.subs(S) for [i,j] in zip(x0,f)]
-    n=0
-    if abs(sum([(i-j)^2 for [i,j] in zip(x1,x2)]))>eps^2:
-        while abs(sum([(i-j)^2 for [i,j] in zip(x1,x2)]))>eps^2:
-            n=n+1
-            x1=x2
-            S=[i==j for [i,j] in zip(x,x1)]
-            x2=[i+j.subs(S) for [i,j] in zip(x0,f)]
-            if n>10^3:
-                print('break')
-                break
-    return x2
-
-def mpm_max_step_size(f,x,x0):
-    M=len(f)
-    S=[i==j for [i,j] in zip(x,x0)]
-    J=matrix(RR, M, M, lambda n,m: diff(f[n], x[m]).subs(S))
-    return RR(1/J.norm())
-    
-def mpm(problem, N=10, eps=10^-20):
-    [f,x,x0,T]=problem.list()
-    if type(f)!=type([]):
-        f=[f]
-        x=[x]
-        x0=[x0]
-    t0=0
-    ans=[[0]+x0]
-    dt=RR(T/N)
-    while t0<T:
-        if dt > mpm_max_step_size(f,x,x0):
-            dt = mpm_max_step_size(f,x,x0)
-        S=[i==(i+j)/2 for [i,j] in zip(x,x0)]
-        F=[i.subs(S)*dt for i in f]
-        x0=simple_iteration_method(F,x,x0, eps=eps)
-        t0=t0+dt
-        ans.append([t0]+x0)
-    return Numsol(ans,[t]+x,dt,2)    	
