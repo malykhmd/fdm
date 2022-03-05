@@ -49,3 +49,4 @@ Specifying a Butcher tableau:
 # References
 * Peter Stone. [Maple worksheets on the derivation of Runge-Kutta schemes](http://www.peterstone.name/Maplepgs/RKcoeff.html)
 * A. Baddour, M.D. Malykh, Richardson–Kalitkin method in abstract description, Discrete and Continuous Models and Applied Computational Science29 (3) (2021) 271–284.  DOI: [10.22363/2658-4670-2021-29-3-271-284](https://doi.org/10.22363/2658-4670-2021-29-3-271-284).
+* Ying Y. The symbolic problems associated with Runge-Kutta methods and their solving in Sage // Discrete and Continuous Models and Applied Computational Science. - 2019. - Vol. 27. - N. 1. - P. 33-41. doi: [10.22363/2658-4670-2019-27-1-33-41](https://doi.org/10.22363/2658-4670-2019-27-1-33-41)
