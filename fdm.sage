@@ -492,7 +492,7 @@ def adams_adaptive(problem, h=10^-1, r=2):
         F.append(g)
     while t0<T:
         L=[x_==RR(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
-        dt=h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1))
+        dt=RR(h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1)))
         x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
         t0=t0+dt
         ans.append([t0]+x0)
