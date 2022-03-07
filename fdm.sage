@@ -324,7 +324,7 @@ def curvature(f,x):
     return k
 
 
-def erk_adoptive(problem, h=0.1, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method')):
+def erk_adaptive(problem, h=0.1, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method')):
     [f,x,x0,T]=problem.list()
     if type(f)!=type([]):
         f=[f]
@@ -378,7 +378,7 @@ def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,dt,tableau.order(),problem)
     
-def irk_adoptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
+def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
@@ -405,3 +405,96 @@ def irk_adoptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2
             for [x0_,k_] in zip(x0,zip(*k))]
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,dt,tableau.order(),problem)
+
+################
+# Adams method #
+################
+
+def adams(problem, N=10, r=2):
+    [f,x,x0,T]=problem.list()
+    if type(f)!=type([]):
+        f=[f]
+        x=[x]
+        x0=[x0]
+    ans=[[0]+x0]
+    dt=RR(T/N)    
+    D=lambda F: sum([(diff(F,x[i])*f[i]) for i in range(len(x))]) + diff(F,t)
+    F = [f]
+    g=f
+    for i in range(r):
+        g=[D(f_) for f_ in g]
+        F.append(g)
+    for n in range(N):
+        L=[x_==x0_ for [x_,x0_] in zip(x,x0)] + [t==n*dt]
+        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F))]) for i in range(len(f))]
+        ans.append([(n+1)*dt]+x0)
+    return Numsol(ans,[t]+x,dt,r+1,problem)
+
+def adams_adaptive(problem, h=10^-1, r=2):
+    [f,x,x0,T]=problem.list()
+    if type(f)!=type([]):
+        f=[f]
+        x=[x]
+        x0=[x0]
+    t0=0
+    ans=[[t0]+x0]
+    D=lambda G: sum([(diff(G,x[i])*f[i]) for i in range(len(x))]) + diff(G,t)
+    F = [f]
+    g=f
+    for i in range(r+1):
+        g=[D(f_) for f_ in g]
+        F.append(g)
+    while t0<T:
+        L=[x_==RR(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
+        dt=h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1))
+        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
+        t0=t0+dt
+        ans.append([t0]+x0)
+    return Numsol(ans,[t]+x,h,r,problem)
+    
+################
+# Adams method #
+################
+
+def adams(problem, N=10, r=2):
+    [f,x,x0,T]=problem.list()
+    if type(f)!=type([]):
+        f=[f]
+        x=[x]
+        x0=[x0]
+    ans=[[0]+x0]
+    dt=RR(T/N)    
+    D=lambda F: sum([(diff(F,x[i])*f[i]) for i in range(len(x))]) + diff(F,t)
+    F = [f]
+    g=f
+    for i in range(r):
+        g=[D(f_) for f_ in g]
+        F.append(g)
+    for n in range(N):
+        L=[x_==x0_ for [x_,x0_] in zip(x,x0)] + [t==n*dt]
+        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F))]) for i in range(len(f))]
+        ans.append([(n+1)*dt]+x0)
+    return Numsol(ans,[t]+x,dt,r+1,problem)
+
+def adams_adaptive(problem, h=10^-1, r=2):
+    [f,x,x0,T]=problem.list()
+    if type(f)!=type([]):
+        f=[f]
+        x=[x]
+        x0=[x0]
+    t0=0
+    ans=[[t0]+x0]
+    D=lambda G: sum([(diff(G,x[i])*f[i]) for i in range(len(x))]) + diff(G,t)
+    F = [f]
+    g=f
+    for i in range(r+1):
+        g=[D(f_) for f_ in g]
+        F.append(g)
+    while t0<T:
+        L=[x_==RR(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
+        dt=h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1))
+        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
+        t0=t0+dt
+        ans.append([t0]+x0)
+    return Numsol(ans,[t]+x,h,r,problem)
+   	
