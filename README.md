@@ -30,8 +30,9 @@ Implicite Runge-Kutta method with step dt=T/N:
 ```
 Specifying a Butcher tableau:
 ```
-  sage: B=Butcher_tableau(4,[[[1/4,1/4-1/6*sqrt(3)],[1/4+1/6*sqrt(3),1/4]],[1/2,1/2]], 'glrk','Gauss--Legendre RK methods')
-  sage: R=irk(problem1, N=20,tableau=B)
+  sage: B=butcher_list(4,2,symplectic=True)
+  sage: B[0].latex(field=AA)
+  sage: R=irk(problem1, h=1/2,tableau=B[0])
 ```
 ## Iterpolation and plots
 ```
