@@ -1,8 +1,10 @@
 ################
-# FDM ver. 1.2 #
+# FDM ver. 1.3 #
 ################
 
-#RR=RealField(200)
+################
+# Main classes #
+################
 
 class Initial_problem:
     def __init__(self, x, f, x0, T):
@@ -39,6 +41,13 @@ class Initial_problem:
         else:
             ans=sum([diff(u,i)*j for [i,j] in zip(x,f)]) + diff(u,t)
         return ans
+    def taylor(self,u,n):
+        ans=u
+        var('tau')
+        for i in range(1,n+1):
+            u=self.D(u)
+            ans=ans + 1/factorial(i)*u*(tau-t)^i
+        return ans
     def latex(self):
         [f,x,x0,T]=self.list()
         print("\\left \\{ \\begin{aligned} &")
@@ -50,36 +59,32 @@ class Initial_problem:
         print("\\end{aligned} \\right. ")
 
 class Numsol:
-    def __init__(self, points, variables,h,order):
+    def __init__(self, points, variables,h,order,problem):
         self.points = points
         self.variables = variables
         self.h = h
         self.order = order
+        self.problem = problem
     def size(self):
         return len(self.points)
     def list(self):
         return self.points
-    def values(self,u,t0):
+    def value(self,u,t0):
         P=self.points
         n=0
         while P[n][0] < t0:
             n=n+1
-        L=[]
-        for i in range(n-2,n+3):
-            if i>=0 and i< self.size():
-                L.append(P[i])
-        S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in L]
+        if abs(P[n-1][0]- t0) < abs(P[n][0]- t0):
+            n=n-1
+        s=[i==j for [i,j] in zip(self.variables, P[n])]
+        return self.problem.taylor(u,self.order+1).subs(s).subs(tau=t0)
+    def spline(self,u,t0):
+        P=self.points
+        n=0
+        while P[n][0] < t0:
+            n=n+1
+        S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in P[n-2:n+3]]
         return spline([[t.subs(s),u.subs(s)] for s in S])
-    def value(self,u,t0,order=0):
-        L=[i for i in self.list() if i[0]==t0]
-        if order == 0: 
-            if L!=[]:
-                ans=u.subs([i==j for [i,j] in zip(self.variables, L[0])])
-            else:    
-                ans = self.values(u,t0)(t0)
-        elif order == 1 or order == 2:
-            ans = self.values(u,t0).derivative(t0, order=order)
-        return ans
     def plot(self,u,v):
         S=[[x_==p_ for [x_,p_] in zip(self.variables,p)] for p in self.points]
         labels = ['$'+str(latex(u))+'$','$'+str(latex(v))+'$']
@@ -116,9 +121,9 @@ def richardson(P1,P2,u,t1,order=0, delta=0):
         ans=[u1,c*h1^r]
     return ans      
 
-def richardson_plot(P,u,t1,order=0, nmin=0, nmax=oo):
+def richardson_plot(P,u,t1, nmin=0, nmax=oo):
     r=P[-1].order
-    L=[[P_.h, abs(P_.value(u,t1,order=order) - P[-1].value(u,t1,order=order))/(1-(P[-1].h/P_.h)^r)] for P_ in P[:-1]]
+    L=[[P_.h, abs(P_.value(u,t1) - P[-1].value(u,t1))/(1-(P[-1].h/P_.h)^r)] for P_ in P[:-1]]
     g1=list_plot_loglog(L, axes_labels=['$h$','$|E('+str(latex(u))+')|$'])
     L=[[log(a,10),log(b,10)] for [a,b] in L]
     L=L[nmin:min(nmax,len(L))]
@@ -135,7 +140,7 @@ def mnk(P):
     eqs=[diff(s,a)==0, diff(s,b)==0] 
     S=solve(eqs,vars)[0] 
     return [RR(a.subs(S)),RR(b.subs(S))]
-
+	
 ###################
 # Butcher tableau #
 ###################
@@ -310,7 +315,7 @@ def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,
         x0=[x0_ + sum([b_*k__ for [b_,k__]  in zip(b,k_)])*dt \
             for [x0_,k_] in zip(x0,zip(*k))]
         ans.append([t0]+x0)
-    return Numsol(ans,[t]+x,dt,tableau.order())
+    return Numsol(ans,[t]+x,dt,tableau.order(),problem)
 
 def curvature(f,x):
     a=[1] + [f_ for f_ in f]
@@ -344,7 +349,7 @@ def erk_adoptive(problem, h=0.1, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,
             for [x0_,k_] in zip(x0,zip(*k))]
         t0=t0+dt
         ans.append([t0]+x0+[dt])
-    return Numsol(ans,[t]+x,h,tableau.order())
+    return Numsol(ans,[t]+x,h,tableau.order(),problem)
 
 def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
     [f,x,x0,T]=problem.list()
@@ -371,7 +376,7 @@ def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1
         x0=[x0_ + sum([b_*k__ for [b_,k__]  in zip(b,k_)])*dt \
             for [x0_,k_] in zip(x0,zip(*k))]
         ans.append([t0]+x0)
-    return Numsol(ans,[t]+x,dt,tableau.order())
+    return Numsol(ans,[t]+x,dt,tableau.order(),problem)
     
 def irk_adoptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
     [f,x,x0,T]=problem.list()
@@ -399,51 +404,4 @@ def irk_adoptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2
         x0=[x0_ + sum([b_*k__ for [b_,k__]  in zip(b,k_)])*dt \
             for [x0_,k_] in zip(x0,zip(*k))]
         ans.append([t0]+x0)
-    return Numsol(ans,[t]+x,dt,tableau.order())
-
-
-################
-# Adams method #
-################
-
-def adams(problem, N=10, r=2):
-    [f,x,x0,T]=problem.list()
-    if type(f)!=type([]):
-        f=[f]
-        x=[x]
-        x0=[x0]
-    ans=[[0]+x0]
-    dt=RR(T/N)    
-    D=lambda F: sum([(diff(F,x[i])*f[i]) for i in range(len(x))]) + diff(F,t)
-    F = [f]
-    g=f
-    for i in range(r):
-        g=[D(f_) for f_ in g]
-        F.append(g)
-    for n in range(N):
-        L=[x_==x0_ for [x_,x0_] in zip(x,x0)] + [t==n*dt]
-        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F))]) for i in range(len(f))]
-        ans.append([(n+1)*dt]+x0)
-    return Numsol(ans,[t]+x,dt,r+1)
-
-def adams_adoptive(problem, h=10^-1, r=2):
-    [f,x,x0,T]=problem.list()
-    if type(f)!=type([]):
-        f=[f]
-        x=[x]
-        x0=[x0]
-    t0=0
-    ans=[[t0]+x0]
-    D=lambda G: sum([(diff(G,x[i])*f[i]) for i in range(len(x))]) + diff(G,t)
-    F = [f]
-    g=f
-    for i in range(r+1):
-        g=[D(f_) for f_ in g]
-        F.append(g)
-    while t0<T:
-        L=[x_==RR(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
-        dt=h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1))
-        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
-        t0=t0+dt
-        ans.append([t0]+x0)
-    return Numsol(ans,[t]+x,h,r)
+    return Numsol(ans,[t]+x,dt,tableau.order(),problem)
