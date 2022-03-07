@@ -496,5 +496,5 @@ def adams_adaptive(problem, h=10^-1, r=2):
         x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
         t0=t0+dt
         ans.append([t0]+x0)
-    return Numsol(ans,[t]+x,h,r,problem)
+    return Numsol(ans,[t]+x,h,r+1,problem)
    	
