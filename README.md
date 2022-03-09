@@ -17,7 +17,7 @@ for which a special class is introduced, is considered.
 ## Description of the initial problem
 ```
   sage: var("x1,x2,t")
-  sage: problem1=InitialProblem([x1,x2], [x2,-x1], [0,1], 1)
+  sage: problem1=Initial_problem([x1,x2], [x2,-x1], [0,1], 1)
 ```
 ## Description of the numerical solution
 Explicit Runge-Kutta method with step dt=T/N:
