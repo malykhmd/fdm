@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.3 #
+# FDM ver. 1.5 #
 ################
 
 ################
@@ -34,7 +34,7 @@ class Initial_problem:
         else:
             ans=u.subs(S)
         return ans
-    def D(self, u):
+    def diff(self, u):
         [f,x,x0,T]=self.list()
         if type(u)==type([]): 
             ans=[sum([diff(uu,i)*j for [i,j] in zip(x,f)]) + diff(uu,t) for uu in u]
@@ -45,9 +45,15 @@ class Initial_problem:
         ans=u
         var('tau')
         for i in range(1,n+1):
-            u=self.D(u)
+            u=self.diff(u)
             ans=ans + 1/factorial(i)*u*(tau-t)^i
         return ans
+    def curvature(self):
+        [f,x,x0,T]=self.list()
+        a=[1] + f
+        b=[0] + [self.diff(i) for i in f]
+        k=sum([(a[i]*b[j]-a[j]*b[i])^2 for i in range(len(a)) for j in range(len(a)) if i<j])/sum([a_^2 for a_ in a])^(3/2)
+        return k
     def latex(self):
         [f,x,x0,T]=self.list()
         print("\\left \\{ \\begin{aligned} &")
@@ -78,12 +84,23 @@ class Numsol:
             n=n-1
         s=[i==j for [i,j] in zip(self.variables, P[n])]
         return self.problem.taylor(u,self.order+1).subs(s).subs(tau=t0)
+    def zeros(self,u):
+        P=self.points
+        nums=[i for i in range(len(P)-1) if u.subs([i==j for [i,j] in \
+        zip(self.variables, P[i])])* u.subs([i==j for [i,j] in zip(self.variables, P[i+1])])<0]
+        polys=[self.problem.taylor(u,self.order+1).subs([i==j for [i,j] in zip(self.variables, P[n])]) for n in nums]
+        ans=[find_root(f,P[n][0],P[n+1][0]) for [f,n] in zip(polys,nums) ]
+        return ans
     def spline(self,u,t0):
         P=self.points
         n=0
         while P[n][0] < t0:
             n=n+1
-        S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in P[n-2:n+3]]
+        L=[]
+        for i in range(n-2,n+3):
+            if i>=0 and i< self.size():
+                L.append(P[i])
+        S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in L]
         return spline([[t.subs(s),u.subs(s)] for s in S])
     def plot(self,u,v):
         S=[[x_==p_ for [x_,p_] in zip(self.variables,p)] for p in self.points]
@@ -108,18 +125,31 @@ class Numsol:
 # Error estimate by Richardson-Kalitkin #
 #########################################  
 
-def richardson(P1,P2,u,t1,order=0, delta=0):
-    r=P1.order-delta
+def richardson(P1,P2,u,t1,delta=0):
+    r=P1.order+delta
     h1=P1.h
     h2=P2.h
-    u1=P1.value(u,t1,order=order)
-    u2=P2.value(u,t1,order=order)
+    u1=P1.value(u,t1)
+    u2=P2.value(u,t1)
     c=(u1-u2)/(h1^r-h2^r)
     if h1>h2:
         ans=[u2,c*h2^r]
     else:
         ans=[u1,c*h1^r]
     return ans      
+    
+def richardson_zeros(P1,P2,u,num=0,delta=0):
+    r=P1.order+delta
+    h1=P1.h
+    h2=P2.h
+    u1=P1.zeros(u)[num]
+    u2=P2.zeros(u)[num]
+    c=(u1-u2)/(h1^r-h2^r)
+    if h1>h2:
+        ans=[u2,c*h2^r]
+    else:
+        ans=[u1,c*h1^r]
+    return ans   
 
 def richardson_plot(P,u,t1, nmin=0, nmax=oo):
     r=P[-1].order
@@ -130,6 +160,18 @@ def richardson_plot(P,u,t1, nmin=0, nmax=oo):
     var("x")
     [a,b]=mnk(L)
     ll='$y='+str(latex(a.n(digits=3)*x+b.n(digits=3))) +'$'
+    g2=plot_loglog(10^b*x^a,(x,min([P_.h for P_ in P[:-1]]),max([P_.h for P_ in P[:-1]])), legend_label=ll)
+    return  g1 + g2
+    
+def richardson_plot_zeros(P, u, num=0, nmin=0, nmax=oo):
+    r=P[-1].order
+    L=[[P_.h, abs(P_.zeros(u)[num] - P[-1].zeros(u)[num])/(1-(P[-1].h/P_.h)^r)] for P_ in P[:-1]]
+    g1=list_plot_loglog(L, axes_labels=['$h$','$|E(Z('+str(latex(u))+'))|$'])
+    L=[[log(a,10),log(b,10)] for [a,b] in L]
+    L=L[nmin:min(nmax,len(L))]
+    var("x")
+    [a,b]=mnk(L)
+    ll='$y='+str(latex(a.n(digits=3)*x+b.n(digits=3))) +'$ for the root $t='+str(latex(P[-1].zeros(u)[num]))+'$'
     g2=plot_loglog(10^b*x^a,(x,min([P_.h for P_ in P[:-1]]),max([P_.h for P_ in P[:-1]])), legend_label=ll)
     return  g1 + g2
 
@@ -175,7 +217,7 @@ class Butcher_tableau:
             ans=[field(b_c) for b_c in self.tableau[1]]
         return ans
     def number_of_stages(self):
-        return len(self.b())
+        return len(self.tableau[1])
     def c(self,field=RR, radical_expression=False):
         if radical_expression==True:
             ans=[sum([field(a__) for a__ in a_]).radical_expression() for a_ in self.tableau[0]]
@@ -297,14 +339,14 @@ def butcher_eqs(p,s,implicit=True,symplectic=False):
 # Runge--Kutta method #
 #######################    
     
-def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method')):
+def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method'), field=RR):
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
-    dt=RR(T/N)
-    a=tableau.a(field=RR)
-    b=tableau.b(field=RR)
-    c=tableau.c(field=RR)
+    dt=T/N
+    a=tableau.a(field=field)
+    b=tableau.b(field=field)
+    c=tableau.c(field=field)
     for n in range(N):
         k=[problem.subs(f,[t0+c[0]*dt]+x0)]
         for m in range(1,tableau.number_of_stages()):
@@ -317,29 +359,22 @@ def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,dt,tableau.order(),problem)
 
-def curvature(f,x):
-    a=[1] + [f_ for f_ in f]
-    b=[0] + [sum([(diff(F,x_)*f_) for [x_,f_] in zip(x,f)]) for F in f]
-    k=sum([(a[i]*b[j]-a[j]*b[i])^2 for i in range(len(a)) for j in range(len(a)) if i<j])/sum([a_^2 for a_ in a])^(3/2)
-    return k
 
-
-def erk_adaptive(problem, h=0.1, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method')):
+def erk_adaptive(problem, h=0.1, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,0,0],[0,0,1,0]], [1/6,1/3,1/3,1/6]], 'rk4','Standard rk method'), field=RR):
     [f,x,x0,T]=problem.list()
     if type(f)!=type([]):
         f=[f]
         x=[x]
         x0=[x0]
     ans=[[0]+x0+[0]]
-    a=tableau.a(field=RR)
-    b=tableau.b(field=RR)
-    c=tableau.c(field=RR)
+    a=tableau.a(field=field)
+    b=tableau.b(field=field)
+    c=tableau.c(field=field)
     t0=0
-    K=curvature(f,x)
+    K=problem.curvature()
     while t0<T:
         L=[x_==RR(x0_) for [x_,x0_] in zip(x,x0)]
         dt=h*(K.subs(L))^(-2/5)
-#        print(dt)
         k=[[f_c.subs(L) for f_c in f]]
         for m in range(1,tableau.number_of_stages()):
             L=[x_==x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt \
@@ -351,14 +386,14 @@ def erk_adaptive(problem, h=0.1, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,
         ans.append([t0]+x0+[dt])
     return Numsol(ans,[t]+x,h,tableau.order(),problem)
 
-def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
+def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods'), field=RR):
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
     dt=T/N
-    a=tableau.a(field=RR)
-    b=tableau.b(field=RR)
-    c=tableau.c(field=RR)
+    a=tableau.a(field=field)
+    b=tableau.b(field=field)
+    c=tableau.c(field=field)
     s=tableau.number_of_stages()
     while t0<T:
         k=[problem.subs(f,[t0]+x0) for i in range(s)]
@@ -378,17 +413,17 @@ def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,dt,tableau.order(),problem)
     
-def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods')):
+def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods'), field=RR):
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
-    a=tableau.a(field=RR)
-    b=tableau.b(field=RR)
-    c=tableau.c(field=RR)
+    a=tableau.a(field=field)
+    b=tableau.b(field=field)
+    c=tableau.c(field=field)
     s=tableau.number_of_stages()
     jac=jacobian(f,x)
     while t0<T:
-        dt=RR(h/jac.subs([t==t0]+[i==j for [i,j] in zip(x,x0)]).norm())
+        dt=field(h/jac.subs([t==t0]+[i==j for [i,j] in zip(x,x0)]).norm())
         k=[problem.subs(f,[t0]+x0) for i in range(s)]
         delta = oo
         i=0
@@ -410,27 +445,26 @@ def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2
 # Adams method #
 ################
 
-def adams(problem, N=10, r=2):
+def adams(problem, N=10, r=2, field=RR):
     [f,x,x0,T]=problem.list()
     if type(f)!=type([]):
         f=[f]
         x=[x]
         x0=[x0]
     ans=[[0]+x0]
-    dt=RR(T/N)    
-    D=lambda F: sum([(diff(F,x[i])*f[i]) for i in range(len(x))]) + diff(F,t)
+    dt=T/N
     F = [f]
     g=f
     for i in range(r):
-        g=[D(f_) for f_ in g]
+        g=[problem.diff(f_) for f_ in g]
         F.append(g)
     for n in range(N):
-        L=[x_==x0_ for [x_,x0_] in zip(x,x0)] + [t==n*dt]
+        L=[x_==field(x0_) for [x_,x0_] in zip(x,x0)] + [t==n*dt]
         x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F))]) for i in range(len(f))]
         ans.append([(n+1)*dt]+x0)
     return Numsol(ans,[t]+x,dt,r+1,problem)
 
-def adams_adaptive(problem, h=10^-1, r=2):
+def adams_adaptive(problem, h=10^-1, r=2, field=RR):
     [f,x,x0,T]=problem.list()
     if type(f)!=type([]):
         f=[f]
@@ -438,63 +472,15 @@ def adams_adaptive(problem, h=10^-1, r=2):
         x0=[x0]
     t0=0
     ans=[[t0]+x0]
-    D=lambda G: sum([(diff(G,x[i])*f[i]) for i in range(len(x))]) + diff(G,t)
     F = [f]
     g=f
     for i in range(r+1):
-        g=[D(f_) for f_ in g]
+        g=[problem.diff(f_) for f_ in g]
         F.append(g)
     while t0<T:
-        L=[x_==RR(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
+        L=[x_==field(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
         dt=h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1))
         x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
         t0=t0+dt
         ans.append([t0]+x0)
-    return Numsol(ans,[t]+x,h,r,problem)
-    
-################
-# Adams method #
-################
-
-def adams(problem, N=10, r=2):
-    [f,x,x0,T]=problem.list()
-    if type(f)!=type([]):
-        f=[f]
-        x=[x]
-        x0=[x0]
-    ans=[[0]+x0]
-    dt=RR(T/N)    
-    D=lambda F: sum([(diff(F,x[i])*f[i]) for i in range(len(x))]) + diff(F,t)
-    F = [f]
-    g=f
-    for i in range(r):
-        g=[D(f_) for f_ in g]
-        F.append(g)
-    for n in range(N):
-        L=[x_==x0_ for [x_,x0_] in zip(x,x0)] + [t==n*dt]
-        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F))]) for i in range(len(f))]
-        ans.append([(n+1)*dt]+x0)
-    return Numsol(ans,[t]+x,dt,r+1,problem)
-
-def adams_adaptive(problem, h=10^-1, r=2):
-    [f,x,x0,T]=problem.list()
-    if type(f)!=type([]):
-        f=[f]
-        x=[x]
-        x0=[x0]
-    t0=0
-    ans=[[t0]+x0]
-    D=lambda G: sum([(diff(G,x[i])*f[i]) for i in range(len(x))]) + diff(G,t)
-    F = [f]
-    g=f
-    for i in range(r+1):
-        g=[D(f_) for f_ in g]
-        F.append(g)
-    while t0<T:
-        L=[x_==RR(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
-        dt=RR(h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1)))
-        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
-        t0=t0+dt
-        ans.append([t0]+x0)
     return Numsol(ans,[t]+x,h,r+1,problem)
-   	
