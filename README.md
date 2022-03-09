@@ -26,7 +26,7 @@ Explicit Runge-Kutta method with step dt=T/N:
 ```
 Implicite Runge-Kutta method with step dt=T/N:
 ```
-  sage: Q=irk(problem1, h=1/20)
+  sage: Q=irk(problem1, N=20)
 ```
 Specifying a Butcher tableau:
 ```
