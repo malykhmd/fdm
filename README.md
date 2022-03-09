@@ -2,7 +2,7 @@
 
 [Sage](https://www.sagemath.org/) has very mediocre tools for the numerical integration of ordinary 
 differential equations, but making computer experiments in it related to symbolic-numerical
-calculations is very comfortable. The report presents a new package for numerical integration
+calculations is very comfortable. Here we present a new package for numerical integration
 of differential equations. We adhered to the following general principles: 
 * numerical solutions are considered as elements of a new class, 
 * the class definition provides tools for interpolating and visualizing the solution, 
