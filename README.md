@@ -46,6 +46,13 @@ Specifying a Butcher tableau:
   sage: richardson_plot(L,x1,9)
   sage: richardson(L[1],L[2],x1,9)
 ```
+# Autors 
+The software was written by students and employees of RUDN since 2017:
+* Ali Baddour (Syria)
+* Ananina Luis Antonio Gonzalez 
+* Mikhail Malykh (Russia)
+* Yu Ying (China)
+
 # References
 * Peter Stone. [Maple worksheets on the derivation of Runge-Kutta schemes](http://www.peterstone.name/Maplepgs/RKcoeff.html)
 * Baddour A., Malykh M.D. Richardson-Kalitkin method in abstract description // Discrete and Continuous Models and Applied Computational Science. - 2021. - Vol. 29. - N. 3. - P. 271-284. doi: [10.22363/2658-4670-2021-29-3-271-284](https://doi.org/10.22363/2658-4670-2021-29-3-271-284).
