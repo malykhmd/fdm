@@ -46,7 +46,7 @@ Specifying a Butcher tableau:
   sage: richardson_plot(L,x1,9)
   sage: richardson(L[1],L[2],x1,9)
 ```
-# Autors 
+# Authors 
 The software was written by students and employees of RUDN since 2017:
 * Ali Baddour (Syria)
 * Ananina Luis Antonio Gonzalez 
