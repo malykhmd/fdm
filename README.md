@@ -49,7 +49,7 @@ Specifying a Butcher tableau:
 # Authors 
 The software was written by students and employees of RUDN since 2017:
 * Ali Baddour (Syria)
-* Ananina Luis Antonio Gonzalez 
+* Ananina Luis Antonio Gonzalez (Ecuador)
 * Mikhail Malykh (Russia)
 * Yu Ying (China)
 
