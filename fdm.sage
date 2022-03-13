@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.6 #
+# FDM ver. 1.7 #
 ################
 
 ################
@@ -102,13 +102,16 @@ class Numsol:
                 L.append(P[i])
         S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in L]
         return spline([[t.subs(s),u.subs(s)] for s in S])
-    def plot(self,u,v):
+    def plot(self, u, v, axes_labels='automatic', linestyle='solid', color='blue'):
         S=[[x_==p_ for [x_,p_] in zip(self.variables,p)] for p in self.points]
-        labels = ['$'+str(latex(u))+'$','$'+str(latex(v))+'$']
+        if axes_labels=='automatic':
+            labels = ['$'+str(latex(u))+'$','$'+str(latex(v))+'$']
+        else:
+            labels = axes_labels
         if self.size()<51:
-            ans = point([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels)
+            ans = point([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels, linestyle=linestyle, color=color)
         else: 
-            ans = line([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels)
+            ans = line([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels, linestyle=linestyle, color=color)
         return ans
     def plot_dt(self):
         t=list(zip(*self.list()))[0]
@@ -400,7 +403,7 @@ def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,dt,tableau.order(),problem)
     
-def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods'), field=RR):
+def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1]], 'midpoint','midpoint methods'), field=RR, v= False):
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
@@ -410,6 +413,8 @@ def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2
     s=tableau.number_of_stages()
     jac=jacobian(f,x)
     while t0<T:
+        if v == True:
+            print('t='+latex(t0))
         dt=field(h/jac.subs([t==t0]+[i==j for [i,j] in zip(x,x0)]).norm())
         k=[problem.subs(f,[t0]+x0) for i in range(s)]
         delta = oo
@@ -505,3 +510,5 @@ def eff_order(problem, u, N=50):
     y3= [problem.subs(u,pts) for pts in L[2][1].list() if L[2][0][0][0]==2^2]
     s=[[t1[n], RR(ln(abs((y2[n]-y1[n])/(y3[n]-y2[n])))/ln(2))] for n in range(1,N) if y3[n]!=y2[n] and y1[n]!=y2[n]]
     return line(s, axes_labels=["$t$","order"],  legend_label="r="+latex(s[-1][1])) + plot(2, (0,problem.T), color="red", linestyle="--")
+
+
