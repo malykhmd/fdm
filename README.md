@@ -24,7 +24,7 @@ Explicit Runge-Kutta method with step dt=T/N:
 ```
   sage: P=erk(problem1, N=20)
 ```
-Implicite Runge-Kutta method with step dt=T/N:
+Implicite Runge-Kutta method with quasistep h:
 ```
   sage: irk_adaptive(problem1, h=1)
 ```
