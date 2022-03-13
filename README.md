@@ -26,13 +26,13 @@ Explicit Runge-Kutta method with step dt=T/N:
 ```
 Implicite Runge-Kutta method with step dt=T/N:
 ```
-  sage: Q=irk(problem1, N=20)
+  sage: irk_adaptive(problem1, h=1)
 ```
 Specifying a Butcher tableau:
 ```
-  sage: B=butcher_list(4,2,symplectic=True)
+  sage: B=symplectic_tableau(2)
   sage: B[0].latex(field=AA)
-  sage: R=irk(problem1, h=1/2,tableau=B[0])
+  sage: irk_adaptive(problem1, h=1, eps=10^-10, M=10^2, tableau=B[0])
 ```
 ## Iterpolation and plots
 ```
