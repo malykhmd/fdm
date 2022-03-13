@@ -42,7 +42,7 @@ Specifying a Butcher tableau:
 ```
 ## Richardson estimate for error
 ```
-  sage: L=[erk(problem1, N=20*2^n,tableau=butchers_list[1]) for n in range(10)]
+  sage: L=[erk(problem1, N=20*2^n) for n in range(10)]
   sage: richardson_plot(L,x1,9)
   sage: richardson(L[1],L[2],x1,9)
 ```
