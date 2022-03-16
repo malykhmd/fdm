@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.7 #
+# FDM ver. 1.8 #
 ################
 
 ################
@@ -82,8 +82,12 @@ class Numsol:
             n=n+1
         if abs(P[n-1][0]- t0) < abs(P[n][0]- t0):
             n=n-1
-        s=[i==j for [i,j] in zip(self.variables, P[n])]
-        return self.problem.taylor(u,self.order+1).subs(s).subs(tau=t0)
+        if t0==P[n][0]:
+            ans= self.problem.subs(u,P[n])
+        else: 
+            s=[i==j for [i,j] in zip(self.variables, P[n])]
+            ans=self.problem.taylor(u,self.order+1).subs(s).subs(tau=t0)
+        return ans
     def zeros(self,u):
         P=self.points
         nums=[i for i in range(len(P)-1) if u.subs([i==j for [i,j] in \
@@ -109,7 +113,7 @@ class Numsol:
         else:
             labels = axes_labels
         if self.size()<51:
-            ans = point([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels, linestyle=linestyle, color=color)
+            ans = point([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels, color=color)
         else: 
             ans = line([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels, linestyle=linestyle, color=color)
         return ans
