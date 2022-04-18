@@ -34,7 +34,7 @@ Specifying a Butcher tableau:
   sage: B[0].latex(field=AA)
   sage: irk_adaptive(problem1, h=1, eps=10^-10, M=10^2, tableau=B[0])
 ```
-## Iterpolation and plots
+## Interpolation and plots
 ```
   sage: P.value(x1,pi) 
   sage: P.plot(t,x1^2)
