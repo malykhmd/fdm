@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.8 #
+# FDM ver. 1.9 #
 ################
 
 ################
@@ -90,8 +90,8 @@ class Numsol:
         return ans
     def zeros(self,u):
         P=self.points
-        nums=[i for i in range(len(P)-1) if u.subs([i==j for [i,j] in \
-        zip(self.variables, P[i])])* u.subs([i==j for [i,j] in zip(self.variables, P[i+1])])<0]
+        nums=[m for m in range(len(P)-1) if u.subs([i==j for [i,j] in \
+        zip(self.variables, P[m])])* u.subs([i==j for [i,j] in zip(self.variables, P[m+1])])<0]
         polys=[self.problem.taylor(u,self.order+1).subs([i==j for [i,j] in zip(self.variables, P[n])]) for n in nums]
         ans=[find_root(f,P[n][0],P[n+1][0]) for [f,n] in zip(polys,nums) ]
         return ans
@@ -106,16 +106,27 @@ class Numsol:
                 L.append(P[i])
         S=[[v_==p__ for [v_,p__] in zip(self.variables,p_)] for p_ in L]
         return spline([[t.subs(s),u.subs(s)] for s in S])
-    def plot(self, u, v, axes_labels='automatic', linestyle='solid', color='blue'):
+    def plot(self, u, v, axes_labels='automatic', linestyle='solid', color='blue', points=False):
         S=[[x_==p_ for [x_,p_] in zip(self.variables,p)] for p in self.points]
         if axes_labels=='automatic':
             labels = ['$'+str(latex(u))+'$','$'+str(latex(v))+'$']
         else:
             labels = axes_labels
-        if self.size()<51:
+        if self.size()<51 or points:
             ans = point([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels, color=color)
         else: 
             ans = line([[u.subs(s),v.subs(s)] for s in S], axes_labels=labels, linestyle=linestyle, color=color)
+        return ans
+    def plot3d(self, u, v, w, axes_labels='automatic', linestyle='solid', color='blue', points=False):
+        S=[[x_==p_ for [x_,p_] in zip(self.variables,p)] for p in self.points]
+        if axes_labels=='automatic':
+            labels = ['$'+str(latex(u))+'$','$'+str(latex(v))+'$','$'+str(latex(w))+'$']
+        else:
+            labels = axes_labels
+        if self.size()<51 or points:
+            ans = point([[u.subs(s),v.subs(s),w.subs(s)] for s in S], axes_labels=labels, color=color)
+        else: 
+            ans = line([[u.subs(s),v.subs(s),w.subs(s)] for s in S], axes_labels=labels, linestyle=linestyle, color=color)
         return ans
     def plot_dt(self):
         t=list(zip(*self.list()))[0]
@@ -247,12 +258,12 @@ class Butcher_tableau:
         print("\\hline")
         print(" & " + " & ".join([latex_zero(b[j]) for j in range(n)]))
         print('\\end{array}')
-    def test(self):
-        a=self.a()
-        b=self.b()
-        n = len(b)
-        [print('error in a matrice, row no. '+ latex(i)) for i in a if len(i)!=n]
-        print('ok')
+#    def test(self):
+#        a=self.a()
+#        b=self.b()
+#        n = len(b)
+#        [print('error in a matrice, row no. '+ latex(i)) for i in a if len(i)!=n]
+#        print('ok')
 
 # From Yu Ying's phd these 
 def symplectic_tableau(s):
