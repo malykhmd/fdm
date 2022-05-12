@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.10 #
+# FDM ver. 1.11 #
 ################
 
 ################
@@ -23,6 +23,7 @@ class Initial_problem:
             x0=self.x0
         T=self.T
         return [f, x, x0, T]
+# Тут внесены правки!!!
     def subs(self, u, abc, field=RR):
         [f,x,x0,T]=self.list()
         if len(abc)==len(x):
@@ -401,11 +402,11 @@ def irk(problem, N=10, eps=10^-10, M=10^2, tableau=Butcher_tableau(2,[[[1/2]],[1
     c=tableau.c(field=field)
     s=tableau.number_of_stages()
     while t0<T:
-        k=[problem.subs(f,[t0]+x0) for i in range(s)]
+        k=[problem.subs(f,[t0]+x0, field=field) for i in range(s)]
         delta = oo
         i=0
         while delta>eps:
-            kk = [problem.subs(f,[t0 +c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt for [x0_,k_] in zip(x0,zip(*k))]) for m in range(s)]
+            kk = [problem.subs(f,[t0 +c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt for [x0_,k_] in zip(x0,zip(*k))], field=field) for m in range(s)]
             delta=(matrix(kk)-matrix(k)).norm()
             if i>M:
                 print('error: the simple iteration method does not converge')
@@ -431,11 +432,11 @@ def irk_adaptive(problem, h=10^-1, eps=10^-10, M=10^2, tableau=Butcher_tableau(2
         if v == True:
             print('t='+latex(t0))
         dt=field(h/jac.subs([t==t0]+[i==j for [i,j] in zip(x,x0)]).norm())
-        k=[problem.subs(f,[t0]+x0) for i in range(s)]
+        k=[problem.subs(f,[t0]+x0, field=field) for i in range(s)]
         delta = oo
         i=0
         while delta>eps:
-            kk = [problem.subs(f,[t0 +c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt for [x0_,k_] in zip(x0,zip(*k))]) for m in range(s)]
+            kk = [problem.subs(f,[t0 +c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt for [x0_,k_] in zip(x0,zip(*k))], field=field) for m in range(s)]
             delta=(matrix(kk)-matrix(k)).norm()
             if i>M:
                 print('error: the simple iteration method does not converge')
