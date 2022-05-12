@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.9 #
+# FDM ver. 1.10 #
 ################
 
 ################
@@ -23,16 +23,16 @@ class Initial_problem:
             x0=self.x0
         T=self.T
         return [f, x, x0, T]
-    def subs(self, u, abc):
+    def subs(self, u, abc, field=RR):
         [f,x,x0,T]=self.list()
         if len(abc)==len(x):
             S=[i==j for [i,j] in zip(x,abc)]
         else:
             S=[t==abc[0]]+[i==j for [i,j] in zip(x,abc[1:])]
         if type(u)==type([]): 
-            ans=[uu.subs(S) for uu in u]
+            ans=[field(uu.subs(S)) for uu in u]
         else:
-            ans=u.subs(S)
+            ans=field(u.subs(S))
         return ans
     def diff(self, u):
         [f,x,x0,T]=self.list()
@@ -353,11 +353,11 @@ def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,
     b=tableau.b(field=field)
     c=tableau.c(field=field)
     for n in range(N):
-        k=[problem.subs(f,[t0+c[0]*dt]+x0)]
+        k=[problem.subs(f,[t0+c[0]*dt]+x0, field=field)]
         for m in range(1,tableau.number_of_stages()):
             L=[t0+c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt \
                for [x0_,k_] in zip(x0,zip(*k))]
-            k.append(problem.subs(f,L))
+            k.append(problem.subs(f, L, field=field))
         t0=t0+dt
         x0=[x0_ + sum([b_*k__ for [b_,k__]  in zip(b,k_)])*dt \
             for [x0_,k_] in zip(x0,zip(*k))]
