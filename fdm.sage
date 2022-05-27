@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.11 #
+# FDM ver. 1.12 #
 ################
 
 ################
@@ -83,10 +83,10 @@ class Numsol:
             n=n+1
         if abs(P[n-1][0]- t0) < abs(P[n][0]- t0):
             n=n-1
+        s=[i==j for [i,j] in zip(self.variables, P[n])]
         if t0==P[n][0]:
-            ans= self.problem.subs(u,P[n])
+            ans= u.subs(s)
         else: 
-            s=[i==j for [i,j] in zip(self.variables, P[n])]
             ans=self.problem.taylor(u,self.order+1).subs(s).subs(tau=t0)
         return ans
     def zeros(self,u):
