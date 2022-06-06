@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.12 #
+# FDM ver. 1.13 #
 ################
 
 ################
@@ -24,16 +24,22 @@ class Initial_problem:
         T=self.T
         return [f, x, x0, T]
 # Тут внесены правки!!!
-    def subs(self, u, abc, field=RR):
+    def subs(self, u, abc, field=False):
         [f,x,x0,T]=self.list()
         if len(abc)==len(x):
             S=[i==j for [i,j] in zip(x,abc)]
         else:
             S=[t==abc[0]]+[i==j for [i,j] in zip(x,abc[1:])]
         if type(u)==type([]): 
-            ans=[field(uu.subs(S)) for uu in u]
+            if field==False:
+                ans=[uu.subs(S) for uu in u]
+            else:
+                ans=[field(uu.subs(S)) for uu in u]            
         else:
-            ans=field(u.subs(S))
+            if field==False:
+                ans=u.subs(S)
+            else:
+                ans=field(u.subs(S))
         return ans
     def diff(self, u):
         [f,x,x0,T]=self.list()
@@ -79,6 +85,7 @@ class Numsol:
     def value(self,u,t0):
         P=self.points
         n=0
+        field=(P[-1][-1]).parent()
         while P[n][0] < t0:
             n=n+1
         if abs(P[n-1][0]- t0) < abs(P[n][0]- t0):
@@ -88,7 +95,7 @@ class Numsol:
             ans= u.subs(s)
         else: 
             ans=self.problem.taylor(u,self.order+1).subs(s).subs(tau=t0)
-        return ans
+        return field(ans)
     def zeros(self,u):
         P=self.points
         nums=[m for m in range(len(P)-1) if u.subs([i==j for [i,j] in \
@@ -354,7 +361,7 @@ def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,
     b=tableau.b(field=field)
     c=tableau.c(field=field)
     for n in range(N):
-        k=[problem.subs(f,[t0+c[0]*dt]+x0, field=field)]
+        k=[problem.subs(f,[t0+c[0]*dt]+x0)]
         for m in range(1,tableau.number_of_stages()):
             L=[t0+c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt \
                for [x0_,k_] in zip(x0,zip(*k))]
@@ -468,7 +475,7 @@ def adams(problem, N=10, r=2, field=RR):
         F.append(g)
     for n in range(N):
         L=[x_==field(x0_) for [x_,x0_] in zip(x,x0)] + [t==n*dt]
-        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F))]) for i in range(len(f))]
+        x0=[x0[i] + field(sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F))])) for i in range(len(f))]
         ans.append([(n+1)*dt]+x0)
     return Numsol(ans,[t]+x,dt,r+1,problem)
 
@@ -486,9 +493,9 @@ def adams_adaptive(problem, h=10^-1, r=2, field=RR):
         g=[problem.diff(f_) for f_ in g]
         F.append(g)
     while t0<T:
-        L=[x_==field(x0_) for [x_,x0_] in zip(x,x0)] + [t==RR(t0)]
-        dt=h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1))
-        x0=[x0[i] + sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)]) for i in range(len(f))]
+        L=[x_==field(x0_) for [x_,x0_] in zip(x,x0)] + [t==t0]
+        dt=field(h*(1/sqrt(sum([(1/factorial(r+1)*g_.subs(L))^2 for g_ in g])))^(1/(r+1)))
+        x0=[x0[i] + field(sum([1/factorial(j+1)*F[j][i].subs(L)*dt^(j+1) for j in range(len(F)-1)])) for i in range(len(f))]
         t0=t0+dt
         ans.append([t0]+x0)
     return Numsol(ans,[t]+x,h,r+1,problem)
