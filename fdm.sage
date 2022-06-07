@@ -1,5 +1,5 @@
 ################
-# FDM ver. 1.13 #
+# FDM ver. 1.14 #
 ################
 
 ################
@@ -361,7 +361,7 @@ def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,
     b=tableau.b(field=field)
     c=tableau.c(field=field)
     for n in range(N):
-        k=[problem.subs(f,[t0+c[0]*dt]+x0)]
+        k=[problem.subs(f,[t0+c[0]*dt]+x0, field=field)]
         for m in range(1,tableau.number_of_stages()):
             L=[t0+c[m]*dt] + [x0_ + sum([a_*k__ for [a_,k__] in zip(a[m],k_)])*dt \
                for [x0_,k_] in zip(x0,zip(*k))]
