@@ -11,7 +11,7 @@ def erk(problem, N=10, tableau=Butcher_tableau(4,[[[0,0,0,0],[1/2,0,0,0],[0,1/2,
     [f,x,x0,T]=problem.list()
     t0=0
     ans=[[t0]+x0]
-    dt=T/N
+    dt=field(T/N)
     a=tableau.a(field=field)
     b=tableau.b(field=field)
     c=tableau.c(field=field)

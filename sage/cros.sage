@@ -1,8 +1,9 @@
 ##########################
 # Cros                   #
 # Badour Ali, 6.11.2017. #
+# Shiwei Wang, 21.9.2023 #
 ##########################
-
+ 
 def cros(problem, N=10, S=1, field=RR):
     [f,x,x0,T]=problem.list()
     if type(f)!=type([]):
@@ -11,9 +12,11 @@ def cros(problem, N=10, S=1, field=RR):
         x0=[x0]
     dt=T/N/S
     M=len(x)
-    K=(matrix.identity(M) - (1+i)/2*dt*jacobian(f,x))^(-1)*matrix(f).transpose()
     ans=[[0]+x0]
+    KK=(matrix.identity(M) - (1+i)/2*dt*jacobian(f,x))
+    Kf=matrix(f).transpose()
     for n in range(N*S):
+        K=(KK.subs([i==j for [i,j] in zip(x,x0)]))^(-1)*Kf
         x0 = [field((x0[l]+dt*K[l][0]).subs([i==j for [i,j] in zip(x,x0)]).real()) for l in range(M)]
         if (n+1)/S in ZZ: 
             ans.append([(n+1)*dt]+x0) 
