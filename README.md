@@ -53,6 +53,7 @@ The software was written by students and employees of RUDN since 2017:
 * [Mikhail Malykh](https://orcid.org/0000-0001-6541-6603) (Russia)
 * [Yu Ying](https://orcid.org/0000-0002-4105-2566) (China)
 * Polina S. Chusovitina (Russia)
+* Shiwei Wang (China)
 
 # References
 * Peter Stone. [Maple worksheets on the derivation of Runge-Kutta schemes](http://www.peterstone.name/Maplepgs/RKcoeff.html)
