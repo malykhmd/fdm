@@ -5,7 +5,10 @@
 
 ###################
 # Butcher tableau #
+# ver. 2.0        #
+# Pavlyuchenkov   #
 ###################
+
 
 def latex_zero(a):
     if a==0:
@@ -15,6 +18,9 @@ def latex_zero(a):
     else:
         ans=latex(a)
     return ans
+
+
+
 
 class Butcher_tableau:
     def __init__(self, n, tableau, short_name=[], notes=[]):
@@ -60,6 +66,57 @@ class Butcher_tableau:
         print("\\hline")
         print(" & " + " & ".join([latex_zero(b[j]) for j in range(n)]))
         print('\\end{array}')
+    
+
+def read_sage_table(file_path):
+    """
+    Reads a Butcher table from a file and stores it in a list of lists.
+    :param file_path: The file path to the Butcher table.
+    :return: A list of lists representing the Butcher table.
+    """
+    with open(file_path, 'r') as file:
+        table = []
+        lines = file.readlines()
+        for line in lines:
+            line = line.replace("'", '')
+            string_values = line.split(', ')
+            string_values = [string.replace(',', '') for string in string_values] 
+            this_values = list(map(sage_eval, string_values))
+            table.append(this_values)
+        table = [table[:-1], table[-1]]
+    return table
+
+
+def get_paths_to_tables(directory_path):
+    """
+    Gets a list of paths to Butcher tables in a directory.
+    :param directory_path: The directory path to the Butcher tables.
+    :return: A list of paths to Butcher tables.
+    """
+    file_paths = []
+    for file_name in os.listdir(directory_path):
+        file_path = os.path.join(directory_path, file_name)
+        if os.path.isfile(file_path):
+            file_paths.append(file_path)
+    return file_paths
+
+
+def construct_high_order_schemes(orders=[9, 10, 11, 12, 14], directory_path='butcher_tables'): 
+    """
+    Constructs a list of Butcher schemes for Runge-Kutta methods of different orders.
+    :param orders: The list of orders to consider. Requires updating when adding schemes of new orders.
+    :param directory_path: The directory path to the Butcher tables.
+    :return: A list of Butcher schemes.
+    """
+    butcher_schemes = []
+    for order in orders:
+        file_paths = get_paths_to_tables(os.path.join(directory_path, str(order)))
+        for file_path in file_paths:
+            table = read_sage_table(file_path)
+            butcher_schemes.append(Butcher_tableau(order, table, f'rk{order}', file_path[file_path.rfind('/')+ 1:file_path.rfind('.txt')]))
+    return butcher_schemes
+
+    
 #    def test(self):
 #        a=self.a()
 #        b=self.b()
@@ -67,7 +124,7 @@ class Butcher_tableau:
 #        [print('error in a matrice, row no. '+ latex(i)) for i in a if len(i)!=n]
 #        print('ok')
 
-# From Yu Ying's phd these 
+# From Yu Ying's phd thesis
 def symplectic_tableau(s):
     def lacroix(f, p):
         L=[f]
