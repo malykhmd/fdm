@@ -46,6 +46,9 @@ Specifying a Butcher tableau:
   sage: richardson_plot(L,x1,9)
   sage: richardson(L[1],L[2],x1,9)
 ```
+# Hystory
+* ver 2.1. High order Runge-Kutta schemes added, Pavlyuchenkov.
+
 # Authors 
 The software was written by students and employees of RUDN since 2017:
 * [Ali Baddour](https://orcid.org/0000-0001-8950-1781) (Syria)
@@ -54,7 +57,8 @@ The software was written by students and employees of RUDN since 2017:
 * [Yu Ying](https://orcid.org/0000-0002-4105-2566) (China)
 * Polina S. Chusovitina (Russia)
 * Shiwei Wang (China)
-* Mark Gambaryan (Russia)
+* [Mark Gambaryan](https://orcid.org/0000-0002-4650-4648) (Russia)
+* Sergey Pavlyuchenkov (Russia)
 
 # References
 * Peter Stone. [Maple worksheets on the derivation of Runge-Kutta schemes](http://www.peterstone.name/Maplepgs/RKcoeff.html)
