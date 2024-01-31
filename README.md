@@ -20,7 +20,7 @@ for which a special class is introduced, is considered.
   sage: problem1=Initial_problem([x1,x2], [x2,-x1], [0,1], 1)
 ```
 ## Description of the numerical solution
-Explicit Runge-Kutta method with step dt=T/N:
+Explicit Runge-Kutta method with N points:
 ```
   sage: P=erk(problem1, N=20)
 ```
