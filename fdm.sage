@@ -1,5 +1,5 @@
 ################
-# FDM ver. 2.1 #
+# FDM ver. 2.0 #
 ################
 
 load('sage/main.sage')
