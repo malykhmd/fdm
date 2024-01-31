@@ -46,8 +46,8 @@ Specifying a Butcher tableau:
   sage: richardson_plot(L,x1,9)
   sage: richardson(L[1],L[2],x1,9)
 ```
-# Hystory
-* Butcher, ver 2.0. High order Runge-Kutta schemes is added, Pavlyuchenkov.
+# History
+* Butcher, ver 2.0. High order Runge-Kutta schemes is added by Pavlyuchenkov, jan. 2024.
 
 # Authors 
 The software was written by students and employees of RUDN since 2017:
