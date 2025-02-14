@@ -1,6 +1,6 @@
 ###################
 # Butcher tableau #
-# ver. 2.0        #
+# ver. 2.1        #
 # Pavlyuchenkov   #
 ###################
 
@@ -25,6 +25,10 @@ class Butcher_tableau:
         self.notes = notes
     def order(self):
         return self.n
+    def name(self):
+        return self.short_name
+    def description(self):
+        return self.notes
     def a(self,field=RR):
         return [[field(a_cc) for a_cc in a_c] for a_c in self.tableau[0]]
     def b(self,field=RR):
@@ -61,6 +65,17 @@ class Butcher_tableau:
         print("\\hline")
         print(" & " + " & ".join([latex_zero(b[j]) for j in range(n)]))
         print('\\end{array}')
+        
+def butcher_list(order):
+    """
+    If order is less 9, we use butchers_list.sage in butcher_tables 
+    directory. Else we use the Pavluchenkov triсk.
+    """
+    if order < 9:
+         load('butcher_tables/butchers_list.sage')
+         return [B for B in butchers_list if B.order()==order]
+    else:
+        return construct_high_order_schemes([order])
     
 
 def read_sage_table(file_path):
