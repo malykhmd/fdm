@@ -59,6 +59,7 @@ The software was written by students and employees of RUDN since 2017:
 * Shiwei Wang (China)
 * [Mark Gambaryan](https://orcid.org/0000-0002-4650-4648) (Russia)
 * Sergey Pavlyuchenkov (Russia)
+* Konyaeva Marina (Russia)
 
 # References
 * Peter Stone. [Maple worksheets on the derivation of Runge-Kutta schemes](http://www.peterstone.name/Maplepgs/RKcoeff.html)
