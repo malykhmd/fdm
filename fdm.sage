@@ -1,5 +1,5 @@
 ################
-# FDM ver. 2.0 #
+# FDM ver. 2.1 #
 ################
 
 load('sage/main.sage')
@@ -10,3 +10,4 @@ load('sage/cros.sage')
 load('sage/adams.sage')
 load('sage/cremona.sage')
 load('sage/calogero.sage')
+load('sage/rosanes.sage')
