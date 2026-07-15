@@ -177,10 +177,12 @@ def richardson_zeros(P1,P2,u,num=0,delta=0):
         ans=[u1,c*h1^r]
     return ans   
 
-def richardson_plot(P,u,t1, nmin=0, nmax=oo):
+def richardson_plot(P,u,t1, nmin=0, nmax=oo, axes_labels=[]):
     r=P[-1].order
     L=[[P_.h, abs(P_.value(u,t1) - P[-1].value(u,t1))/(1-(P[-1].h/P_.h)^r)] for P_ in P[:-1]]
-    g1=list_plot_loglog(L, axes_labels=['$h$','$|E('+str(latex(u))+')|$'])
+    if axes_labels==[]:
+        axes_labels=['$h$','$|E('+str(latex(u))+')|$']
+    g1=list_plot_loglog(L, axes_labels=axes_labels)
     L=[[log(a,10),log(b,10)] for [a,b] in L]
     L=L[nmin:min(nmax,len(L))]
     var("x")
