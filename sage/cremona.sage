@@ -29,12 +29,17 @@ def cremona_hat(f,x,xx,ring=QQ):
             L=L+c*(SR(m).subs(S))  
     return L
 
-def cremona_step(problem, dt, ring=QQ):
+def cremona_step(problem, dt, ring=QQ, algo=[]):
     [F,x,x0,T]=problem.list()
     xx=list(var(['x'+str(i) for i in x]))
+    K=PolynomialRing(FractionField(PolynomialRing(ring, x)), xx)
     eqs = [j-i-cremona_hat(f,x,xx, ring=ring)*dt for [i,j,f] in zip(x,xx,F)]
-    ans = solve(eqs,xx)[0]
-    return [i.subs(ans) for i in xx]
+    if algo == 'variety':    
+        ans = (K*eqs).variety()[0]
+    else: 
+        T=triangulation([K(eq) for eq in eqs])
+        ans=tsolve(T)
+    return [K(i).subs(ans) for i in xx]
 
 def cremona_scheme(problem, N=10, field=QQ):
     [f,x,x0,T]=problem.list()
@@ -43,6 +48,7 @@ def cremona_scheme(problem, N=10, field=QQ):
     ans=[[t0]+x0]
     dt=T/N
     X=[K(g) for g in cremona_step(problem,dt,ring=QQ)]
+    print('схема сформирована...')
     for n in range(N):
         t0=t0+dt
         S={K(i):j for [i,j] in zip(x,x0)}
