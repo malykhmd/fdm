@@ -46,8 +46,25 @@ Specifying a Butcher tableau:
   sage: richardson_plot(L,x1,9)
   sage: richardson(L[1],L[2],x1,9)
 ```
+## Quadratization
+```
+sage: var('x y t')
+sage: problem = Initial_problem([x, y],[sin(exp(y)), exp(x) + y^3,], [1, 1], 1)
+sage: quad_problem, quad_system = problem.polynomialize_and_quadratize(
+    method='qbee',
+    polynomialization_upper_bound=20,
+    time_var=t,
+    allow_laurent=False,
+    print_result=True
+```
+Here quad_problem is an Initial_problem and can be passed to FDM solvers. Example:
+```
+solution = erk(quad_problem, N=20)
+```
+
 # History
 * Butcher, ver 2.0. High order Runge-Kutta schemes is added by Pavlyuchenkov, jan. 2024.
+* Quadratization, Original software of Bychkov is ported in FDM by Daniil Popov, sent. 2026.
 
 # Authors 
 The software was written by students and employees of RUDN since 2017:
