@@ -70,6 +70,13 @@ class Initial_problem:
         print("".join([latex(xx)+'(0)='+latex(xx0)+r', \quad ' for [xx,xx0] in zip(x[:len(x)-1],x0[:len(x)-1])])\
                        + latex(x[-1])+'(0)='+latex(x0[-1]))
         print("\\end{aligned} \\right. ")
+    def polynomialize(self, **kwds):
+        return pd_polynomialize_problem(self, **kwds)
+    def quadratize(self, **kwds):
+        return pd_quadratize_problem(self, **kwds)
+    def polynomialize_and_quadratize(self, **kwds):
+        kwds['polynomialize_first'] = True
+        return pd_quadratize_problem(self, **kwds)
 
 class Numsol:
     def __init__(self, points, variables,h,order,problem):
@@ -177,12 +184,10 @@ def richardson_zeros(P1,P2,u,num=0,delta=0):
         ans=[u1,c*h1^r]
     return ans   
 
-def richardson_plot(P,u,t1, nmin=0, nmax=oo, axes_labels=[]):
+def richardson_plot(P,u,t1, nmin=0, nmax=oo):
     r=P[-1].order
     L=[[P_.h, abs(P_.value(u,t1) - P[-1].value(u,t1))/(1-(P[-1].h/P_.h)^r)] for P_ in P[:-1]]
-    if axes_labels==[]:
-        axes_labels=['$h$','$|E('+str(latex(u))+')|$']
-    g1=list_plot_loglog(L, axes_labels=axes_labels)
+    g1=list_plot_loglog(L, axes_labels=['$h$','$|E('+str(latex(u))+')|$'])
     L=[[log(a,10),log(b,10)] for [a,b] in L]
     L=L[nmin:min(nmax,len(L))]
     var("x")
@@ -210,4 +215,3 @@ def mnk(P):
     eqs=[diff(s,a)==0, diff(s,b)==0] 
     S=solve(eqs,vars)[0] 
     return [RR(a.subs(S)),RR(b.subs(S))]
-
