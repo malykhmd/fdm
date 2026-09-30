@@ -93,9 +93,9 @@ class Numsol:
         P=self.points
         n=0
         field=(P[-1][-1]).parent()
-        while P[n][0] < t0:
+        while n < len(P)-1 and P[n][0] < t0:
             n=n+1
-        if abs(P[n-1][0]- t0) < abs(P[n][0]- t0):
+        if n > 0 and abs(P[n-1][0]- t0) < abs(P[n][0]- t0):
             n=n-1
         s=[i==j for [i,j] in zip(self.variables, P[n])]
         if t0==P[n][0]:
@@ -113,7 +113,7 @@ class Numsol:
     def spline(self,u,t0):
         P=self.points
         n=0
-        while P[n][0] < t0:
+        while n < len(P)-1 and P[n][0] < t0:
             n=n+1
         L=[]
         for i in range(n-2,n+3):
