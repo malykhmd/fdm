@@ -111,13 +111,30 @@ def get_paths_to_tables(directory_path):
     return file_paths
 
 
-def construct_high_order_schemes(orders=[9, 10, 11, 12, 14], directory_path='butcher_tables'): 
+def find_tables_directory(name='butcher_tables'):
+    """
+    Finds a directory the same way load() finds files: in the current
+    directory, then along load_attach_path() (see SAGE_LOAD_ATTACH_PATH).
+    :param name: The directory name relative to a search path entry.
+    :return: The path to the directory.
+    """
+    for path in load_attach_path():
+        directory_path = os.path.join(str(path), name)
+        if os.path.isdir(directory_path):
+            return directory_path
+    raise FileNotFoundError('directory ' + repr(name) + ' not found in ' + str([str(p) for p in load_attach_path()]))
+
+
+def construct_high_order_schemes(orders=[9, 10, 11, 12, 14], directory_path=None): 
     """
     Constructs a list of Butcher schemes for Runge-Kutta methods of different orders.
     :param orders: The list of orders to consider. Requires updating when adding schemes of new orders.
-    :param directory_path: The directory path to the Butcher tables.
+    :param directory_path: The directory path to the Butcher tables. By default the directory
+                           'butcher_tables' is searched along load_attach_path(), as load() does.
     :return: A list of Butcher schemes.
     """
+    if directory_path is None:
+        directory_path = find_tables_directory()
     butcher_schemes = []
     for order in orders:
         file_paths = get_paths_to_tables(os.path.join(directory_path, str(order)))
