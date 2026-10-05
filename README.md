@@ -64,7 +64,7 @@ solution = erk(quad_problem, N=20)
 
 # History
 * Butcher, ver 2.0. High order Runge-Kutta schemes is added by Pavlyuchenkov, jan. 2024.
-* Quadratization, Original software of Bychkov is ported in FDM by Daniil Popov, sent. 2026.
+* Quadratization, A. Bychkov's [QBee](https://github.com/AndreyBychkov/QBee) is ported in FDM by Daniil Popov and Vlada Lyukshina, sent. 2026.
 
 # Authors 
 The software was written by students and employees of RUDN since 2017:
