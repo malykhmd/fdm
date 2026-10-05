@@ -43,8 +43,8 @@ Specifying a Butcher tableau:
 ## Richardson estimate for error
 ```
   sage: L=[erk(problem1, N=20*2^n) for n in range(10)]
-  sage: richardson_plot(L,x1,9)
-  sage: richardson(L[1],L[2],x1,9)
+  sage: richardson_plot(L,x1,1)
+  sage: richardson(L[1],L[2],x1,1)
 ```
 ## Quadratization
 ```
@@ -77,6 +77,9 @@ The software was written by students and employees of RUDN since 2017:
 * [Mark Gambaryan](https://orcid.org/0000-0002-4650-4648) (Russia)
 * Sergey Pavlyuchenkov (Russia)
 * Konyaeva Marina (Russia)
+* [Lapshenkova Lyubov](https://orcid.org/0000-0002-1053-4925) (Russia)
+* Popov Daniil (Russia)
+* Lyukshina Vlada (Russia)
 
 # References
 * Peter Stone. [Maple worksheets on the derivation of Runge-Kutta schemes](http://www.peterstone.name/Maplepgs/RKcoeff.html)
