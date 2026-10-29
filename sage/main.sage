@@ -7,11 +7,14 @@
 ################
 
 class Initial_problem:
-    def __init__(self, x, f, x0, T):
+    def __init__(self, x, f, x0, T, introduced_variables=None):
         self.f = f
         self.x = x
         self.x0 = x0
         self.T = T
+        if introduced_variables is None:
+            introduced_variables = []
+        self.introduced_variables = list(introduced_variables)
     def list(self):
         if type(self.f)!=type([]):
             f=[self.f]
@@ -50,7 +53,7 @@ class Initial_problem:
         return ans
     def taylor(self,u,n):
         ans=u
-        tau=SR.var('tau')
+        var('tau')
         for i in range(1,n+1):
             u=self.diff(u)
             ans=ans + 1/factorial(i)*u*(tau-t)^i
@@ -61,15 +64,24 @@ class Initial_problem:
         b=[0] + [self.diff(i) for i in f]
         k=sum([(a[i]*b[j]-a[j]*b[i])^2 for i in range(len(a)) for j in range(len(a)) if i<j])/sum([a_^2 for a_ in a])^(3/2)
         return k
-    def latex(self):
+    def _latex_(self):
         [f,x,x0,T]=self.list()
-        print("\\left \\{ \\begin{aligned} &")
-        print("".join([r'\frac{d}{dt}'+latex(xx)+'='+latex(ff) + r', \quad ' for [xx,ff] \
-                       in zip(x[:len(x)-1],f[:len(x)-1])])\
-                      + r' \frac{d}{dt}'+latex(x[-1])+'='+latex(f[-1])+', \\\\ &')
-        print("".join([latex(xx)+'(0)='+latex(xx0)+r', \quad ' for [xx,xx0] in zip(x[:len(x)-1],x0[:len(x)-1])])\
-                       + latex(x[-1])+'(0)='+latex(x0[-1]))
-        print("\\end{aligned} \\right. ")
+        rows = []
+        rows.append("".join([r'\frac{d}{dt}'+latex(xx)+'='+latex(ff) + r', \quad '
+                             for [xx,ff] in zip(x[:len(x)-1],f[:len(x)-1])])
+                    + r' \frac{d}{dt}'+latex(x[-1])+'='+latex(f[-1]))
+        if len(self.introduced_variables) > 0:
+            rows.append("".join([latex(variable)+'='+latex(value)+r', \quad '
+                                 for [variable,value] in self.introduced_variables[:-1]])
+                        + latex(self.introduced_variables[-1][0])+'='
+                        + latex(self.introduced_variables[-1][1]))
+        rows.append("".join([latex(xx)+'(0)='+latex(xx0)+r', \quad '
+                             for [xx,xx0] in zip(x[:len(x)-1],x0[:len(x)-1])])
+                    + latex(x[-1])+'(0)='+latex(x0[-1]))
+        return r'\left \{ \begin{aligned} &' + (r' \\ &' .join(rows)) \
+               + r' \end{aligned} \right.'
+    def latex(self):
+        return LatexExpr(self._latex_())
     def polynomialize(self, **kwds):
         return pd_polynomialize_problem(self, **kwds)
     def quadratize(self, **kwds):
