@@ -280,7 +280,8 @@ class QuadratizationSystem:
         if "Initial_problem" not in globals():
             raise NameError("Initial_problem is not loaded. Load fdm.sage before calling initial_problem().")
         return Initial_problem(self.state_variables(), self.rhs(),
-                               self.extended_initial_conditions(), self.T)
+                               self.extended_initial_conditions(), self.T,
+                               self.introduced_variables())
 
     def is_quadratic(self):
         variables = self.state_variables()

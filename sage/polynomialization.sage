@@ -608,7 +608,9 @@ class PolynomializationSystem:
         if "Initial_problem" not in globals():
             raise NameError("Initial_problem is not loaded. Load fdm.sage before calling initial_problem().")
         return Initial_problem(self.state_variables(), self.rhs(True),
-                               self.extended_initial_conditions(), self.T)
+                               self.extended_initial_conditions(), self.T,
+                               [(w, self.substitutions[w])
+                                for w in self.variables.generated])
 
     def print_substitutions(self):
         print("Introduced variables:")
